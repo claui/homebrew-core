@@ -6,11 +6,6 @@ class Ldc < Formula
   stable do
     url "https://github.com/ldc-developers/ldc/releases/download/v1.11.0/ldc-1.11.0-src.tar.gz"
     sha256 "85464fae47bc605308910afd6cfc6ddeafe95a8ad5b61e2c0c23caff82119f70"
-
-    resource "ldc-lts" do
-      url "https://github.com/ldc-developers/ldc/releases/download/v0.17.6/ldc-0.17.6-src.tar.gz"
-      sha256 "868b8c07ab697306ea65f0006fc2b6b96db4df226e82f8f11cafbed6fa9ac561"
-    end
   end
 
   bottle do
@@ -21,12 +16,6 @@ class Ldc < Formula
 
   head do
     url "https://github.com/ldc-developers/ldc.git", :shallow => false
-
-    resource "ldc-lts" do
-      url "https://github.com/ldc-developers/ldc.git",
-          :shallow => false,
-          :branch => "ltsmaster"
-    end
   end
 
   depends_on "cmake" => :build
@@ -35,24 +24,21 @@ class Ldc < Formula
 
   needs :cxx11
 
+  resource "ldc-bootstrap" do
+    url "https://github.com/ldc-developers/ldc/releases/download/v1.11.0/ldc2-1.11.0-osx-x86_64.tar.xz"
+    version "1.11.0"
+    sha256 "18f85374854546b28a3dca12d3029aea4dac43a65b1835361c5e6f6c233762c8"
+  end
+
   def install
     ENV.cxx11
-    (buildpath/"ldc-lts").install resource("ldc-lts")
+    (buildpath/"ldc-bootstrap").install resource("ldc-bootstrap")
 
-    cd "ldc-lts" do
-      mkdir "build" do
-        args = std_cmake_args + %W[
-          -DLLVM_ROOT_DIR=#{Formula["llvm@6"].opt_prefix}
-        ]
-        system "cmake", "..", *args
-        system "make"
-      end
-    end
     mkdir "build" do
       args = std_cmake_args + %W[
         -DLLVM_ROOT_DIR=#{Formula["llvm@6"].opt_prefix}
         -DINCLUDE_INSTALL_DIR=#{include}/dlang/ldc
-        -DD_COMPILER=#{buildpath}/ldc-lts/build/bin/ldmd2
+        -DD_COMPILER=#{buildpath}/ldc-bootstrap/bin/ldmd2
         -DLDC_WITH_LLD=OFF
         -DRT_ARCHIVE_WITH_LDC=OFF
       ]
