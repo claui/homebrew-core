@@ -2,15 +2,6 @@ class Ldc < Formula
   desc "Portable D programming language compiler"
   homepage "https://wiki.dlang.org/LDC"
 
-  stable do
-    url "https://github.com/ldc-developers/ldc/releases/download/v1.12.0/ldc-1.12.0-src.tar.gz"
-    sha256 "952ba57a957079345333d3f6aaaac766cc49750859357c419efc0c897850b5b9"
-  end
-
-  head do
-    url "https://github.com/ldc-developers/ldc.git", :shallow => false
-  end
-
   depends_on "cmake" => :build
   depends_on "libconfig" => :build
   depends_on "llvm"
