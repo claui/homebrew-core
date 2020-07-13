@@ -30,11 +30,26 @@ class Ghc < Formula
   depends_on "python@3.8" => :build
   depends_on "sphinx-doc" => :build
 
+  # To build the static GMP
+  if Hardware::CPU.arm?
+    depends_on "autoconf" => :build
+    depends_on "automake" => :build
+    depends_on "libtool" => :build
+  end
+
   resource "gmp" do
-    url "https://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz"
-    mirror "https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz"
-    mirror "https://ftpmirror.gnu.org/gmp/gmp-6.1.2.tar.xz"
-    sha256 "87b565e89a9a684fe4ebeeddb8399dce2599f9c9049854ca8c0dfbdea0e21912"
+    url "https://gmplib.org/download/gmp/gmp-6.2.0.tar.xz"
+    mirror "https://ftp.gnu.org/gnu/gmp/gmp-6.2.0.tar.xz"
+    mirror "https://ftpmirror.gnu.org/gmp/gmp-6.2.0.tar.xz"
+    sha256 "258e6cd51b3fbdfc185c716d55f82c08aff57df0c6fbd143cf6ed561267a1526"
+
+    patch do
+      # Remove when upstream fix is released
+      # https://gmplib.org/list-archives/gmp-bugs/2020-July/004837.html
+      # arm64-darwin patch
+      url "https://raw.githubusercontent.com/Homebrew/formula-patches/c53834b4/gmp/6.2.0-arm.patch"
+      sha256 "4c5b926f47c78f9cc6f900130d020e7f3aa6f31a6e84246e8886f6da04f7424c"
+    end
   end
 
   # https://www.haskell.org/ghc/download_ghc_8_10_1.html#macosx_x86_64
@@ -61,8 +76,16 @@ class Ghc < Formula
     # GMP *does not* use PIC by default without shared libs so --with-pic
     # is mandatory or else you'll get "illegal text relocs" errors.
     resource("gmp").stage do
-      system "./configure", "--prefix=#{gmp}", "--with-pic", "--disable-shared",
-                            "--build=#{Hardware.oldest_cpu}-apple-darwin#{`uname -r`.to_i}"
+      args = %W[--prefix=#{gmp} --with-pic --disable-shared]
+
+      if Hardware::CPU.arm?
+        args << "--build=aarch64-apple-darwin#{`uname -r`.to_i}"
+        system "autoreconf", "-fiv"
+      else
+        args << "--build=#{Hardware.oldest_cpu}-apple-darwin#{`uname -r`.to_i}"
+      end
+
+      system "./configure", *args
       system "make"
       system "make", "install"
     end
