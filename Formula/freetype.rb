@@ -33,6 +33,9 @@ class Freetype < Formula
 
     inreplace [bin/"freetype-config", lib/"pkgconfig/freetype2.pc"],
       prefix, opt_prefix
+    inreplace bin/"freetype-config",
+      HOMEBREW_LIBRARY/"Homebrew/shims/mac/super/pkg-config",
+      Formula["pkg-config"].opt_bin/"pkg-config"
   end
 
   test do
